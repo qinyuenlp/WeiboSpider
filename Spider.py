@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
-import time
-import xlrd,xlwt
-import os
-from urllib import parse
-from selenium import webdriver
-from xlutils.copy import copy
-import jieba
-import WordCloud as WC
-import gensim
 import re
 import csv
-import numpy as np
+import time
+import gensim
 import datetime
+import numpy as np
+import urllib import parse
+import selenium import webdriver
 
-def weibo_spider(text, maxpage=50, login=True, driver=None, username=None, password=None):
+def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, password=None):
+    ''' 执行单次爬虫 '''
     # 准备信息
     variables = ['ID', 'Href', 'Blog', 'PubTime', 'Like', 'Comment', 'Transfer']
     Weibo = {i:[] for i in variables}
@@ -29,7 +25,7 @@ def weibo_spider(text, maxpage=50, login=True, driver=None, username=None, passw
 
     if login:  # 如果是第一次启动程序, 则需要执行 [打开浏览器-登录] 操作
         driver = webdriver.Firefox(executable_path='geckodriver')  # 打开浏览器
-        driver.get(get_url(text))
+        driver.get(get_url(keyword))
         time.sleep(1)
         weibo_login(driver, login_path, username, password)  # 登录
         time.sleep(3)
@@ -73,11 +69,12 @@ def weibo_spider(text, maxpage=50, login=True, driver=None, username=None, passw
     return driver, Weibo
 
 def get_url(keyword, page=1):
-    # 输入关键字, 获取对应搜索界面第page页的Url, 默认从第1页开始爬取
+    ''' 输入关键字, 获取对应搜索界面第page页的Url, 默认从第1页开始爬取 '''
     url_mid = parse.quote(keyword)  # 将text转为URL编码
     return 'http://s.weibo.com/weibo/{mid}&page={page}'.format(mid=url_mid, page=page)
 
 def weibo_login(driver, login_path, username=None, password=None):
+    ''' 登录微博账号 '''
     driver.find_element_by_xpath(login_path).click()  # 点击'登录'按钮
     time.sleep(1)
     driver.find_element_by_name('username').clear()
@@ -105,6 +102,7 @@ def weibo_login(driver, login_path, username=None, password=None):
             driver.find_element_by_class_name('W_btn_a').click()
 
 def time_process(begintime, strtime):
+    ''' 将爬取的时间统一处理为 1970-1-1 12:12 格式'''
     Y, M, D, h, m, s = re.findall(r'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)', begintime.strftime('%Y-%m-%d %H:%M:%S'))[0]
     if re.match(r'(.*?)年(.*?)月(.*?)日 \d+:\d+', strtime):
         Y, M, D, h, m = re.findall(r'(\d+)年(\d+)月(\d+)日 (\d+):(\d+)', strtime)[0]
@@ -129,12 +127,14 @@ def time_process(begintime, strtime):
         return (begintime-s_ago).strftime('%Y-%m-%d %H:%M')
 
 def get_number(text):
+    ''' 提取数字 '''
     try:
         return int(text.split(' ')[-1])
     except:
         return 0
 
 def select_data(Weibo, login=False, latest=None):
+    ''' 将爬取的微博根据时间进行筛选, 只取在时间节点latest之后发布的微博 '''
     PubTime = np.array([datetime.datetime.strptime(i, '%Y-%m-%d %H:%M') for i in Weibo['PubTime']])
     if login:
         latest = max(PubTime)
@@ -146,6 +146,7 @@ def select_data(Weibo, login=False, latest=None):
     return latest, data
 
 def save_blog(data, filepath):
+    ''' 保存数据 '''
     if re.match(r'(.*?).csv$', filepath):
         with open(filepath, 'a+', newline='', encoding='utf-8-sig') as file:
             writer = csv.writer(file)
@@ -155,6 +156,7 @@ def save_blog(data, filepath):
         return ValueError('目前只支持输出csv格式')
 
 def Standby(keyword, filepath, maxpage=50, sleeptime=3600):
+    ''' 后台待机程序, 每隔一小时(3600s)更新一次数据 '''
     driver, result = weibo_spider(keyword, maxpage=50)
     for i in result:
         print('%s:\n%d\n%s' % (i, len(result[i]), result[i]))  # 爬虫
