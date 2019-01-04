@@ -13,7 +13,8 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
     # 准备信息
     variables = ['ID', 'Href', 'Blog', 'PubTime', 'Like', 'Comment', 'Transfer']
     Weibo = {i:[] for i in variables}
-
+    
+    # 元素所在位置
     login_path = '//div[@class="gn_login"]/ul[@class="gn_login_list"]/li[3]/a[@class="S_txt1"]'
     ID_path = '//div[@class="content" and @node-type="like"]/div[1]/div[2]/a[@class="name"]'
     Blog_normal_path = '//div[@class="card-wrap" and @action-type="feed_list_item"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content"]/p[@class="txt"and @node-type="feed_list_content"]'
@@ -33,38 +34,44 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
     click_control = True
     current_page = 1
     while click_control and current_page <= maxpage:
-        next_click = driver.find_elements_by_partial_link_text('展开全文')
-        for each in next_click:
-            each.click()
-            time.sleep(0.1)
-        begin_time = datetime.datetime.now()  # 爬取数据时的时间截点
-        IDs = driver.find_elements_by_xpath(ID_path)
-        Blogs_normal = driver.find_elements_by_xpath(Blog_normal_path)
-        Blogs_extend = driver.find_elements_by_xpath(Blog_extend_path)
-        PubTimes = driver.find_elements_by_xpath(PubTime_path)
-        Likes = driver.find_elements_by_xpath(Like_path)
-        Comments = driver.find_elements_by_xpath(Comment_path)
-        Transfers = driver.find_elements_by_xpath(Transfer_path)
+        try:
+            next_click = driver.find_elements_by_partial_link_text('展开全文')
+            for each in next_click:  # 逐个点击'展开全文'按钮
+                each.click()
+                time.sleep(0.1)
 
-        Weibo['ID'] += [i.text for i in IDs]
-        Weibo['Href'] += [i.get_attribute('href') for i in IDs]
-        Weibo['PubTime'] += [time_process(begin_time, i.text) for i in PubTimes]
-        Weibo['Like'] += [get_number(i.text) for i in Likes]
-        Weibo['Comment'] += [get_number(i.text) for i in Comments]
-        Weibo['Transfer'] += [get_number(i.text) for i in Transfers]
-        Blogs_list_page = [blog.text for blog in Blogs_normal]
+            begin_time = datetime.datetime.now()  # 爬取数据时的时间截点
+            IDs = driver.find_elements_by_xpath(ID_path)
+            Blogs_normal = driver.find_elements_by_xpath(Blog_normal_path)  # 普通博文
+            Blogs_extend = driver.find_elements_by_xpath(Blog_extend_path)  # 长微博博文
+            PubTimes = driver.find_elements_by_xpath(PubTime_path)
+            Likes = driver.find_elements_by_xpath(Like_path)
+            Comments = driver.find_elements_by_xpath(Comment_path)
+            Transfers = driver.find_elements_by_xpath(Transfer_path)
 
-        extend = 0
-        for i in range(len(Blogs_list_page)):
-            if Blogs_list_page[i] == '':
-                Blogs_list_page[i] = Blogs_extend[extend].text
-                extend += 1
-        Weibo['Blog'] += Blogs_list_page
+            Weibo['ID'] += [i.text for i in IDs]
+            Weibo['Href'] += [i.get_attribute('href') for i in IDs]
+            Weibo['PubTime'] += [time_process(begin_time, i.text) for i in PubTimes]  # 将时间处理为统一格式
+            Weibo['Like'] += [get_number(i.text) for i in Likes]
+            Weibo['Comment'] += [get_number(i.text) for i in Comments]
+            Weibo['Transfer'] += [get_number(i.text) for i in Transfers]
+            Blogs_list_page = [blog.text for blog in Blogs_normal]
 
-        click_control = True
-        driver.find_element_by_partial_link_text('下一页').click()
-        print('######第%d页######' % current_page)
-        current_page += 1
+            # 将普通博文与长微博博文合并
+            extend = 0
+            for i in range(len(Blogs_list_page)):
+                if Blogs_list_page[i] == '':
+                    Blogs_list_page[i] = Blogs_extend[extend].text
+                    extend += 1
+            Weibo['Blog'] += Blogs_list_page
+
+            click_control = True
+            driver.find_element_by_partial_link_text('下一页').click()
+            print('######第%d页######' % current_page)
+            current_page += 1
+        except:
+            print('爬虫结束')
+            click_control = False
         
     return driver, Weibo
 
@@ -104,24 +111,24 @@ def weibo_login(driver, login_path, username=None, password=None):
 def time_process(begintime, strtime):
     ''' 将爬取的时间统一处理为 1970-1-1 12:12 格式'''
     Y, M, D, h, m, s = re.findall(r'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)', begintime.strftime('%Y-%m-%d %H:%M:%S'))[0]
-    if re.match(r'(.*?)年(.*?)月(.*?)日 \d+:\d+', strtime):
+    if re.match(r'(.*?)年(.*?)月(.*?)日 \d+:\d+', strtime):  # 匹配格式: xx年xx月xx日 xx时:xx分
         Y, M, D, h, m = re.findall(r'(\d+)年(\d+)月(\d+)日 (\d+):(\d+)', strtime)[0]
         return '%s-%s-%s %s:%s' % (Y, M, D, h, m)
-    elif re.match(r'(.*?)月(.*?)日 \d+:\d+', strtime):
+    elif re.match(r'(.*?)月(.*?)日 \d+:\d+', strtime):  # 匹配格式: (今年)xx月xx日 xx时:xx分
         M, D, h, m = re.findall(r'(\d+)月(\d+)日 (\d+):(\d+)', strtime)[0]
         return '%s-%s-%s %s:%s' % (Y, M, D, h, m)
-    elif re.match(r'^今天\d+:\d+', strtime):
+    elif re.match(r'^今天\d+:\d+', strtime):  # 匹配格式: 今天xx时:xx分
         h, m = re.findall(r'今天(\d+):(\d+)', strtime)[0]
         return '%s-%s-%s %s:%s' % (Y, M, D, h, m)
-    elif re.match(r'\d+小时前$', strtime):
+    elif re.match(r'\d+小时前$', strtime):  # 匹配格式: xx小时前
         h = re.findall(r'(\d+)小时前', strtime)[0]
         h_ago = datetime.timedelta(hours=int(h))
         return (begintime-h_ago).strftime('%Y-%m-%d %H:%M')
-    elif re.match(r'(\d+)分钟前$', strtime):
+    elif re.match(r'(\d+)分钟前$', strtime):  # 匹配格式: xx分钟前
         m = re.findall(r'(\d+)分钟前$', strtime)[0]
         m_ago = datetime.timedelta(minutes=int(m))
         return (begintime-m_ago).strftime('%Y-%m-%d %H:%M')
-    elif re.match(r'(\d+)秒前$', strtime):
+    elif re.match(r'(\d+)秒前$', strtime):  # 匹配格式: xx秒前
         s = re.findall(r'(\d+)秒前', strtime)[0]
         s_ago = datetime.timedelta(seconds=int(s))
         return (begintime-s_ago).strftime('%Y-%m-%d %H:%M')
@@ -136,10 +143,10 @@ def get_number(text):
 def select_data(Weibo, login=False, latest=None):
     ''' 将爬取的微博根据时间进行筛选, 只取在时间节点latest之后发布的微博 '''
     PubTime = np.array([datetime.datetime.strptime(i, '%Y-%m-%d %H:%M') for i in Weibo['PubTime']])
-    if login:
+    if login:  # 如果是第一轮爬取, 则直接从爬取的数据中获取最近时间节点latest
         latest = max(PubTime)
         data = np.array(list(Weibo.values())).T
-    else:
+    else:  # 如果是第k轮爬取(k>1), 则先根据上一轮的latest筛选数据, 再更新latest
         data_index = np.where(PubTime > latest)
         latest = max(PubTime)
         data = np.array(list(Weibo.values())).T[data_index]
