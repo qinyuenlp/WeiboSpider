@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Jul 26 13:27:40 2018
-
-@author: Administrator
-"""
 import time
 import xlrd,xlwt
 import os
@@ -74,9 +69,7 @@ def weibo_spider(text, maxpage=50, login=True, driver=None, username=None, passw
         driver.find_element_by_partial_link_text('下一页').click()
         print('######第%d页######' % current_page)
         current_page += 1
-        # except:
-        #     print('爬虫结束')
-        #     click_control = False
+        
     return driver, Weibo
 
 def get_url(keyword, page=1):
@@ -92,7 +85,6 @@ def weibo_login(driver, login_path, username=None, password=None):
     driver.find_element_by_name('username').send_keys(username)  # 输入微博账号
     driver.find_element_by_name('password').clear()
     driver.find_element_by_name('password').send_keys(password)  # 输入微博密码
-    # driver.find_element_by_class_name('W_btn_a').click()
     try:
         driver.find_element_by_class_name('W_btn_a').click()
     except:
