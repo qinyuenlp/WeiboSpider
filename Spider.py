@@ -161,8 +161,9 @@ def select_data(Weibo, login=False, latest=None, filepath=None):
     return latest, data
 
 def latest_from_file(filepath):
+    ''' 从文件中提取最近时间 '''
     with open(filepath, encoding='utf-8') as file:
-        data = np.array([row for row in csv.reader(file)]).T
+        data = np.array([row for row in csv.reader(file)]).T  # 保存的文件列名为: ID-Href-Blog-PubTime-Like-Comment-Transfer
         data_pubtime = map(lambda x:datetime.datetime.strptime(x, '%Y-%m-%d %H:%M'), data[3])
         latest = max(data_pubtime)
     return latest
