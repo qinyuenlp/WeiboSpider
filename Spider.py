@@ -23,6 +23,7 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
     Like_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[4]/a'
     Comment_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[3]/a'
     Transfer_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[2]/a'
+    nextpage_path = '//div[@class="m-page"]/div/a[@class="next"]'
 
     if login:  # 如果是第一次启动程序, 则需要执行 [打开浏览器-登录] 操作
         driver = webdriver.Firefox(executable_path='geckodriver')  # 打开浏览器
@@ -37,9 +38,10 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
         try:
             next_click = driver.find_elements_by_partial_link_text('展开全文')
             for each in next_click:  # 逐个点击'展开全文'按钮
-                each.click()
-                time.sleep(0.1)
-
+                try:
+                    each.click()
+                except:
+                    continue
             begin_time = datetime.datetime.now()  # 爬取数据时的时间截点
             IDs = driver.find_elements_by_xpath(ID_path)
             Blogs_normal = driver.find_elements_by_xpath(Blog_normal_path)  # 普通博文
@@ -66,7 +68,7 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
             Weibo['Blog'] += Blogs_list_page
 
             click_control = True
-            driver.find_element_by_partial_link_text('下一页').click()
+            driver.find_element_by_xpath(nextpage_path).click()  # 点击'下一页'标签, 进入下一页面
             print('######第%d页######' % current_page)
             current_page += 1
         except:
@@ -140,17 +142,30 @@ def get_number(text):
     except:
         return 0
 
-def select_data(Weibo, login=False, latest=None):
+def select_data(Weibo, login=False, latest=None, filepath=None):
     ''' 将爬取的微博根据时间进行筛选, 只取在时间节点latest之后发布的微博 '''
     PubTime = np.array([datetime.datetime.strptime(i, '%Y-%m-%d %H:%M') for i in Weibo['PubTime']])
     if login:  # 如果是第一轮爬取, 则直接从爬取的数据中获取最近时间节点latest
-        latest = max(PubTime)
-        data = np.array(list(Weibo.values())).T
+        try:
+            latest = latest_from_file(filepath)
+            data_index = np.where(PubTime > latest)
+            latest = max(PubTime)
+            data = np.array(list(Weibo.values())).T[data_index]
+        except:
+            latest = max(PubTime)
+            data = np.array(list(Weibo.values())).T
     else:  # 如果是第k轮爬取(k>1), 则先根据上一轮的latest筛选数据, 再更新latest
         data_index = np.where(PubTime > latest)
         latest = max(PubTime)
         data = np.array(list(Weibo.values())).T[data_index]
     return latest, data
+
+def latest_from_file(filepath):
+    with open(filepath, encoding='utf-8') as file:
+        data = np.array([row for row in csv.reader(file)]).T
+        data_pubtime = map(lambda x:datetime.datetime.strptime(x, '%Y-%m-%d %H:%M'), data[3])
+        latest = max(data_pubtime)
+    return latest
 
 def save_blog(data, filepath):
     ''' 保存数据 '''
@@ -167,7 +182,7 @@ def Standby(keyword, filepath, maxpage=50, sleeptime=3600):
     driver, result = weibo_spider(keyword, maxpage=50)
     for i in result:
         print('%s:\n%d\n%s' % (i, len(result[i]), result[i]))  # 爬虫
-    latest, result = select_data(result, login=True)
+    latest, result = select_data(result, login=True, filepath=filepath)
     save_blog(result, filepath)
     while True:
         time.sleep(sleeptime)
@@ -175,3 +190,4 @@ def Standby(keyword, filepath, maxpage=50, sleeptime=3600):
         driver, result = weibo_spider(keyword, maxpage, False, driver)
         latest, result = select_data(result, latest=latest)
         save_blog(result, filepath)
+        print('-------------%s-------------'%latest)
