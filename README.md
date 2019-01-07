@@ -28,5 +28,7 @@ csv_file = 'C:/test.csv'
 my_username = 'abcdefg'
 my_password = '11111111'
 keyword = '微博'
+my_browser = 'Chrome'
 
-Standby(keyword, csv_file, my_username, my_password, maxpage=20, sleeptime=1800)
+Standby(keyword, csv_file, my_username, my_password, maxpage=20, sleeptime=1800, browser=my_browser)
+```
