@@ -1,5 +1,5 @@
 # WeiboSpider
-![Python](https://img.shields.io/badge/Python-3.6-green.svg)
+[![Python](https://img.shields.io/badge/Python-3.6-green.svg)](https://www.python.org/)
 ![selenium](https://img.shields.io/badge/selenium-3.141.0-blue.svg)  
 利用`selenium`实现后台自动爬取**指定关键词下**发布的所有微博及其相关数据
 ## 注意事项
