@@ -67,7 +67,11 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
             Weibo['Blog'] += Blogs_list_page
 
             click_control = True
-            driver.find_element_by_xpath(nextpage_path).click()  # 点击'下一页'标签, 进入下一页面
+            try:
+                driver.find_element_by_xpath(nextpage_path).click()  # 点击'下一页'标签, 进入下一页面
+            except:
+                driver.refresh()
+                driver.find_element_by_xpath(nextpage_path).click()
             print('######第%d页######' % current_page)
             current_page += 1
         except:
