@@ -7,7 +7,7 @@ import numpy as np
 from urllib import parse
 from selenium import webdriver
 
-def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, password=None):
+def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, password=None, browser='Firefox'):
     ''' 执行单次爬虫 '''
     # 准备信息
     variables = ['ID', 'Href', 'Blog', 'PubTime', 'Like', 'Comment', 'Transfer']
@@ -25,7 +25,12 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
     nextpage_path = '//div[@class="m-page"]/div/a[@class="next"]'
 
     if login:  # 如果是第一次启动程序, 则需要执行 [打开浏览器-登录] 操作
-        driver = webdriver.Firefox(executable_path='geckodriver')  # 打开浏览器
+        if browser == 'Firefox':
+            driver = webdriver.Firefox(executable_path='geckodriver')  # 打开浏览器
+        elif browser == 'Chrome':
+            driver = webdriver.Chrome(executable_path='chromedriver')
+        else:
+            return ValueError('目前仅支持Firefox与Chrome浏览器')
         driver.get(get_url(keyword))
         time.sleep(1)
         weibo_login(driver, login_path, username, password)  # 登录
@@ -181,9 +186,9 @@ def save_blog(data, filepath):
     else:
         return ValueError('目前只支持输出csv格式')
 
-def Standby(keyword, filepath, username=None, password=None, maxpage=50, sleeptime=3600):
+def Standby(keyword, filepath, username=None, password=None, maxpage=50, sleeptime=3600, browser='Firefox'):
     ''' 后台待机程序, 每隔一小时(3600s)更新一次数据 '''
-    driver, result = weibo_spider(keyword, maxpage=maxpage, username=username, password=password)  # 第一次打开浏览器, 需要登录微博账号
+    driver, result = weibo_spider(keyword, maxpage=maxpage, username=username, password=password, browser=browser)  # 第一次打开浏览器, 需要登录微博账号
     for i in result:
         print('%s:\n%d\n%s' % (i, len(result[i]), result[i]))  # 爬虫
     latest, result = select_data(result, login=True, filepath=filepath)
@@ -191,7 +196,7 @@ def Standby(keyword, filepath, username=None, password=None, maxpage=50, sleepti
     while True:
         time.sleep(sleeptime)
         driver.refresh()
-        driver, result = weibo_spider(keyword, maxpage=50, login=False, driver=driver)  # 之后仅进行页面刷新以及爬取操作, 不需要登录微博账号
+        driver, result = weibo_spider(keyword, maxpage=50, login=False, driver=driver, browser=browser)  # 之后仅进行页面刷新以及爬取操作, 不需要登录微博账号
         latest, result = select_data(result, latest=latest)
         save_blog(result, filepath)
         print('-------------%s-------------'%latest)
