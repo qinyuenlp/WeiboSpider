@@ -8,7 +8,16 @@ from urllib import parse
 from selenium import webdriver
 
 def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, password=None, browser='Firefox'):
-    ''' 执行单次爬虫 '''
+    '''
+    执行单次爬虫 
+    keyword: 要爬取的关键词
+    maxpage: 需要爬取多少页
+    login: 是否需要登录
+    driver: 浏览器驱动, 若仅爬取一次或第一次爬取, 则该参数取None即可; 若需要自动爬取多次, driver=第一次爬取时定义的驱动参数名
+    username: 微博账号
+    password: 微博密码
+    browser: 浏览器类型, 只能取['Firefox', 'Chrome']中的其中一个
+    '''
     # 准备信息
     variables = ['ID', 'Href', 'Blog', 'PubTime', 'Like', 'Comment', 'Transfer']
     Weibo = {i:[] for i in variables}
@@ -187,7 +196,10 @@ def save_blog(data, filepath):
         return ValueError('目前只支持输出csv格式')
 
 def Standby(keyword, filepath, username=None, password=None, maxpage=50, sleeptime=3600, browser='Firefox'):
-    ''' 后台待机程序, 每隔一小时(3600s)更新一次数据 '''
+    '''
+    后台待机程序, 每隔一小时(3600s)更新一次数据
+    sleeptime: 两次爬取操作的时间间隔, 单位为秒(s)
+    '''
     driver, result = weibo_spider(keyword, maxpage=maxpage, username=username, password=password, browser=browser)  # 第一次打开浏览器, 需要登录微博账号
     for i in result:
         print('%s:\n%d\n%s' % (i, len(result[i]), result[i]))  # 爬虫
