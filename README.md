@@ -4,10 +4,10 @@
 1. 由于selenium对浏览器有要求, 在运行之前请确保计算机已经安装了**Firefox浏览器**或**Chrome浏览器**  
 2. 运行程序前, 需要根据自己使用的浏览器下载对应的浏览器驱动, 并将驱动与python.exe放置在同一文件夹中, 这里给出了两种浏览器驱动的压缩文件, 也可以自行上网下载  
 
-浏览器名称 | 驱动名
----- | ----
-Firefox | geckodriver.exe
-Chrome | chromedriver.exe
+    浏览器名称 | 驱动名
+    ---- | ----
+    Firefox | geckodriver.exe
+    Chrome | chromedriver.exe
 
 ## 爬取内容
 
