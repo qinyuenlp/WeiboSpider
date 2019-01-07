@@ -212,3 +212,12 @@ def Standby(keyword, filepath, username=None, password=None, maxpage=50, sleepti
         latest, result = select_data(result, latest=latest)
         save_blog(result, filepath)
         print('-------------%s-------------'%latest)
+        
+if __name__ == '__main__':
+    csv_file = 'C:/test.csv'
+    my_username = 'abcdefg'
+    my_password = '11111111'
+    keyword = '微博'
+    my_browser = 'Chrome'
+
+    Standby(keyword, csv_file, my_username, my_password, maxpage=20, sleeptime=1800, browser=my_browser)
