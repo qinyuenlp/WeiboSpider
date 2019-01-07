@@ -1,5 +1,6 @@
 # WeiboSpider
-![Python](https://img.shields.io/badge/Python-3.6-green.svg)  
+![Python](https://img.shields.io/badge/Python-3.6-green.svg)
+![selenium](https://img.shields.io/badge/selenium-3.141.0-blue.svg)  
 利用`selenium`实现后台自动爬取**指定关键词下**发布的所有微博及其相关数据
 ## 注意事项
 1. 运行程序前请确保计算机已经安装了**Firefox浏览器**或**Chrome浏览器**  
