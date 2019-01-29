@@ -6,6 +6,7 @@
 更新了账号登录函数```weibo_login```, 更新后可以输入任意多次的验证码, 当系统不要求再次输入验证码后, 在python界面中输入字符——**N** 即可进行之后的操作  
 **优：能够应对任意多次验证码输入请求  
 劣：无法自行判断是否需要再次输入验证码, 需要人工帮助判断**  
+![example](https://github.com/QinY-Stat/WeiboSpider/blob/master/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20190130000120.png)
 ## 注意事项
 1. 目前该程序只能在[Firefox](http://www.firefox.com.cn/)或[Google Chrome](https://www.google.cn/chrome)上运行, 运行程序前请确保计算机已经安装了其中一款浏览器
 2. 运行程序前, 需要根据自己使用的浏览器下载对应的浏览器驱动, 并将驱动与python.exe放置在同一文件夹中, 这里给出了两种浏览器驱动的压缩文件, 也可以自行上网下载  
