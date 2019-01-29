@@ -99,33 +99,45 @@ def get_url(keyword, page=1):
     url_mid = parse.quote(keyword)  # 将text转为URL编码
     return 'http://s.weibo.com/weibo/{mid}&page={page}'.format(mid=url_mid, page=page)
 
-def weibo_login(driver, login_path, username=None, password=None):
-    ''' 登录微博账号 '''
+def weibo_login(driver, login_path, username, password):
+    ''' 执行登录操作 '''
+    username_path = '/html/body/div[7]/div[2]/div[3]/div[3]/div[1]/input'
+    password_path = '/html/body/div[7]/div[2]/div[3]/div[3]/div[2]/input'
+
     driver.find_element_by_xpath(login_path).click()  # 点击'登录'按钮
     time.sleep(1)
-    driver.find_element_by_name('username').clear()
-    time.sleep(1)
-    driver.find_element_by_name('username').send_keys(username)  # 输入微博账号
-    driver.find_element_by_name('password').clear()
-    driver.find_element_by_name('password').send_keys(password)  # 输入微博密码
+    driver.find_element_by_xpath(username_path).clear()
+    driver.find_element_by_xpath(username_path).send_keys(username)  # 输入微博账号
+    driver.find_element_by_xpath(password_path).clear()
+    driver.find_element_by_xpath(password_path).send_keys(password)  # 输入微博密码
+    login_verifycode(driver)
+
+def login_verifycode(driver):
+    ''' 执行登录中对验证码的所有操作 '''
+    verifycode_path = '/html/body/div[7]/div[2]/div[3]/div[3]/div[4]/input'
+    login_path = '/html/body/div[7]/div[2]/div[3]/div[3]/div[6]/a'
+    driver.find_element_by_xpath(login_path).click()
+    time.sleep(0.1)
     try:
-        driver.find_element_by_class_name('W_btn_a').click()
+        driver.find_element_by_xpath(verifycode_path).click()
+        need_verifycode = True
+        while need_verifycode:
+            need_verifycode = login_verifycode_input(driver, login_path)
     except:
-        # 对付验证码
-        driver.find_element_by_name('verifycode').clear()
-        verifycode = input('VerifyCode :')
+        pass
+
+def login_verifycode_input(driver, login_path):
+    ''' 输入验证码 '''
+    verifycode_path = '/html/body/div[7]/div[2]/div[3]/div[3]/div[4]/input'
+
+    verifycode = input('VerifyCode :')
+    if verifycode == 'N':
+        return False
+    else:
         print(verifycode)
-        driver.find_element_by_name('verifycode').send_keys(verifycode)  # 输入验证码
-        time.sleep(3)
-        try:
-            driver.find_element_by_class_name('W_btn_a').click()
-        except:
-            print('VerifyCode again')
-            verifycode = input('VerifyCode :')
-            print(verifycode)
-            driver.find_element_by_name('verifycode').send_keys(verifycode)  # 再次输入验证码
-            time.sleep(3)
-            driver.find_element_by_class_name('W_btn_a').click()
+        driver.find_element_by_xpath(verifycode_path).send_keys(verifycode)  # 输入验证码
+        driver.find_element_by_xpath(login_path).click()
+        return True
 
 def time_process(begintime, strtime):
     ''' 将爬取的时间统一处理为 1970-1-1 12:12 格式'''
