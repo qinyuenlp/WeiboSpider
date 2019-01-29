@@ -2,7 +2,7 @@
 [![Python](https://img.shields.io/badge/Python-3.6-green.svg)](https://www.python.org/)
 ![selenium](https://img.shields.io/badge/selenium-3.141.0-blue.svg)  
 利用`selenium`实现后台自动爬取**指定关键词下**发布的所有微博及其相关数据  
-#### △ 2019.01.29更新
+#### ▽ 2019.01.29更新
 更新了账号登录函数```weibo_login```, 更新后可以输入任意多次的验证码, 当系统不要求再次输入验证码后, 在python界面中输入字符——**N** 即可进行之后的操作  
 ![example](https://github.com/QinY-Stat/WeiboSpider/blob/master/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20190130000120.png)  
 **优：能够应对任意多次验证码输入请求  
