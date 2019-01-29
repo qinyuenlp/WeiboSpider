@@ -31,11 +31,11 @@
 ## 例子
 先爬取关键词**微博**下的前20页微博信息, 接着每隔半小时(1800s)更新一次数据
 ```
-csv_file = 'C:/test.csv'
-my_username = 'abcdefg'
-my_password = '11111111'
-keyword = '微博'
-my_browser = 'Chrome'
+csv_file = 'C:/test.csv'  # 数据文件保存路径
+my_username = 'abcdefg'  # 微博账号
+my_password = '11111111'  # 密码
+keyword = '微博'  # 要搜索的关键词
+my_browser = 'Chrome'  # 浏览器类型(注:仅有Firefox或Chrome两种)
 
 Standby(keyword, csv_file, my_username, my_password, maxpage=20, sleeptime=1800, browser=my_browser)
 ```
