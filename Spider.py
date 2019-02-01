@@ -27,7 +27,7 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
     ID_path = '//div[@class="content" and @node-type="like"]/div[1]/div[2]/a[@class="name"]'
     Blog_normal_path = '//div[@class="card-wrap" and @action-type="feed_list_item"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content"]/p[@class="txt"and @node-type="feed_list_content"]'
     Blog_extend_path = '//div[@class="card-wrap" and @action-type="feed_list_item"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content"]/p[@class="txt"and @node-type="feed_list_content_full"]'
-    PubTime_path = '//div[@class="content" and @node-type="like"]/p[@class="from"]/a[@target="_blank"]'
+    PubTime_path = '/html/body/div[1]/div[3]/div[2]/div[1]/div[1]/div/div/div[1]/div[2]/p[@class="from"]/a[1]'
     Like_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[4]/a'
     Comment_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[3]/a'
     Transfer_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[2]/a'
@@ -141,6 +141,12 @@ def login_verifycode_input(driver, login_path):
 
 def time_process(begintime, strtime):
     ''' 将爬取的时间统一处理为 1970-1-1 12:12 格式'''
+    try:
+        tail = strtime.split(' ')[1]
+        if re.match(r'^转赞*.?', tail):
+            strtime = strtime.split(' ')[0]
+    except:
+        strtime = strtime
     Y, M, D, h, m, s = re.findall(r'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)', begintime.strftime('%Y-%m-%d %H:%M:%S'))[0]
     if re.match(r'(.*?)年(.*?)月(.*?)日 \d+:\d+', strtime):  # 匹配格式: xx年xx月xx日 xx时:xx分
         Y, M, D, h, m = re.findall(r'(\d+)年(\d+)月(\d+)日 (\d+):(\d+)', strtime)[0]
