@@ -59,6 +59,7 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
             IDs = driver.find_elements_by_xpath(ID_path)
             Blogs_normal = driver.find_elements_by_xpath(Blog_normal_path)  # 普通博文
             Blogs_extend = driver.find_elements_by_xpath(Blog_extend_path)  # 长微博博文
+            time.sleep(0.5)
             PubTimes = driver.find_elements_by_xpath(PubTime_path)
             Likes = driver.find_elements_by_xpath(Like_path)
             Comments = driver.find_elements_by_xpath(Comment_path)
