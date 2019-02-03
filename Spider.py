@@ -24,10 +24,10 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
     
     # 元素所在位置
     login_path = '//div[@class="gn_login"]/ul[@class="gn_login_list"]/li[3]/a[@class="S_txt1"]'
-    ID_path = '//div[@class="content" and @node-type="like"]/div[1]/div[2]/a[@class="name"]'
-    Blog_normal_path = '//div[@class="card-wrap" and @action-type="feed_list_item"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content"]/p[@class="txt"and @node-type="feed_list_content"]'
-    Blog_extend_path = '//div[@class="card-wrap" and @action-type="feed_list_item"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content"]/p[@class="txt"and @node-type="feed_list_content_full"]'
-    PubTime_path = '/html/body/div[1]/div[3]/div[2]/div[1]/div[1]/div/div/div[1]/div[2]/p[@class="from"]/a[1]'
+    ID_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/div[@class="info"]/div[2]/a[1]'
+    Blog_normal_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/p[@class="txt"and @node-type="feed_list_content"]'
+    Blog_extend_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/p[@class="txt"and @node-type="feed_list_content_full"]'
+    PubTime_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/p[@class="from"]/a[1]'
     Like_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[4]/a'
     Comment_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[3]/a'
     Transfer_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[2]/a'
@@ -55,14 +55,20 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
                     each.click()
                 except:
                     continue
+            time.sleep(1)
             begin_time = datetime.datetime.now()  # 爬取数据时的时间截点
             IDs = driver.find_elements_by_xpath(ID_path)
+            time.sleep(0.1)
             Blogs_normal = driver.find_elements_by_xpath(Blog_normal_path)  # 普通博文
+            time.sleep(0.1)
             Blogs_extend = driver.find_elements_by_xpath(Blog_extend_path)  # 长微博博文
-            time.sleep(0.5)
+            time.sleep(0.1)
             PubTimes = driver.find_elements_by_xpath(PubTime_path)
+            time.sleep(0.1)
             Likes = driver.find_elements_by_xpath(Like_path)
+            time.sleep(0.1)
             Comments = driver.find_elements_by_xpath(Comment_path)
+            time.sleep(0.1)
             Transfers = driver.find_elements_by_xpath(Transfer_path)
 
             Weibo['ID'] += [i.text for i in IDs]
@@ -106,7 +112,7 @@ def weibo_login(driver, login_path, username, password):
     password_path = '/html/body/div[7]/div[2]/div[3]/div[3]/div[2]/input'
 
     driver.find_element_by_xpath(login_path).click()  # 点击'登录'按钮
-    time.sleep(1)
+    time.sleep(2)
     driver.find_element_by_xpath(username_path).clear()
     driver.find_element_by_xpath(username_path).send_keys(username)  # 输入微博账号
     driver.find_element_by_xpath(password_path).clear()
