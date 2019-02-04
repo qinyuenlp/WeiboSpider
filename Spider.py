@@ -146,14 +146,17 @@ def login_verifycode_input(driver, login_path):
         driver.find_element_by_xpath(login_path).click()
         return True
 
-def time_process(begintime, strtime):
+def time_process(begintime, strtime_input):
     ''' 将爬取的时间统一处理为 1970-1-1 12:12 格式'''
-    try:
-        tail = strtime.split(' ')[1]
-        if re.match(r'^转赞*.?', tail):
-            strtime = strtime.split(' ')[0]
-    except:
-        strtime = strtime
+    strtime_list = strtime_input.split(' ')
+    if re.match(r'^转赞*.?', strtime_list[-1]):  # 能成功匹配到该字符串 则一定有len(strtime_list) >= 2
+        del(strtime_list[-1])
+        if strtime_list[0] == '今天':
+            strtime = ''.join(strtime_list)
+        else:
+            strtime = ' '.join(strtime_list)
+    else:
+        strtime = strtime_input
     Y, M, D, h, m, s = re.findall(r'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)', begintime.strftime('%Y-%m-%d %H:%M:%S'))[0]
     if re.match(r'(.*?)年(.*?)月(.*?)日 \d+:\d+', strtime):  # 匹配格式: xx年xx月xx日 xx时:xx分
         Y, M, D, h, m = re.findall(r'(\d+)年(\d+)月(\d+)日 (\d+):(\d+)', strtime)[0]
@@ -161,7 +164,11 @@ def time_process(begintime, strtime):
     elif re.match(r'(.*?)月(.*?)日 \d+:\d+', strtime):  # 匹配格式: (今年)xx月xx日 xx时:xx分
         M, D, h, m = re.findall(r'(\d+)月(\d+)日 (\d+):(\d+)', strtime)[0]
         return '%s-%s-%s %s:%s' % (Y, M, D, h, m)
-    elif re.match(r'^今天\d+:\d+', strtime):  # 匹配格式: 今天xx时:xx分
+    elif re.match(r'^今天', strtime):  # 匹配格式: 今天xx时:xx分
+        if len(strtime.split(' ')) == 1:
+            strtime = ''.join(strtime_list)
+        else:
+            strtime = ' '.join(strtime_list)
         h, m = re.findall(r'今天(\d+):(\d+)', strtime)[0]
         return '%s-%s-%s %s:%s' % (Y, M, D, h, m)
     elif re.match(r'\d+小时前$', strtime):  # 匹配格式: xx小时前
