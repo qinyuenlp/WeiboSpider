@@ -158,7 +158,9 @@ def time_process(begintime, strtime_input):
     else:
         strtime = strtime_input
     Y, M, D, h, m, s = re.findall(r'(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)', begintime.strftime('%Y-%m-%d %H:%M:%S'))[0]
-    if re.match(r'(.*?)年(.*?)月(.*?)日 \d+:\d+', strtime):  # 匹配格式: xx年xx月xx日 xx时:xx分
+    if re.match(r'(\d+)-(\d+)-(\d+) (\d+):(\d+)', strtime):
+        return strtime
+    elif re.match(r'(.*?)年(.*?)月(.*?)日 \d+:\d+', strtime):  # 匹配格式: xx年xx月xx日 xx时:xx分
         Y, M, D, h, m = re.findall(r'(\d+)年(\d+)月(\d+)日 (\d+):(\d+)', strtime)[0]
         return '%s-%s-%s %s:%s' % (Y, M, D, h, m)
     elif re.match(r'(.*?)月(.*?)日 \d+:\d+', strtime):  # 匹配格式: (今年)xx月xx日 xx时:xx分
