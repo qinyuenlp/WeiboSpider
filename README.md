@@ -75,6 +75,7 @@ mypassword = '123456'
 myfilepath = 'C:/test.csv'
 f = csv.reader(open('E:/hrefs.csv', encoding='utf-8'))
 myhrefs = [href for href in f]
+mybrowser = 'Chrome'  # 默认使用Firefox
 
-userinfo(myhrefs, myusername, mypassword, myfilepath, saved=True, newfilw=True)
+userinfo(myhrefs, myusername, mypassword, browser=mybrowser, filepath=myfilepath, saved=True, newfilw=True)
 ```
