@@ -198,20 +198,3 @@ def save_userinfo(data, filepath, newfile=False):
             file.close()
     else:
         return ValueError('目前只支持输出csv格式')
-
-if __name__ == '__main__':
-    # href = 'https://weibo.com/6571251454?refer_flag=1001030103_'
-    # href = 'https://weibo.com/1623929594?refer_flag=1001030103_'
-    # href = 'https://weibo.com/1642634100?refer_flag=1001030103_'  # 新浪科技
-
-    import csv
-    f = csv.reader(open('D:/Codes/Py_Codes/爬虫/支付宝/网易云年度总结_20190103.csv', encoding='utf-8'))
-    data = []
-    for line in f:
-        data.append(line)
-    # t1 = np.array(data)
-    href = [line[1] for line in data]
-    # t = np.array(userinfo(href[250:300], '981090870@qq.com', 'xa13978289766'))
-    # for line in t:
-    #     print(line)
-    userinfo(href[250:300], '981090870@qq.com', 'xa13978289766', 'D:/Codes/usertest.csv', True, True)
