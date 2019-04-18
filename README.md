@@ -1,7 +1,7 @@
 # WeiboSpider
 [![Python](https://img.shields.io/badge/Python-3.6-green.svg)](https://www.python.org/)
 ![selenium](https://img.shields.io/badge/selenium-3.141.0-blue.svg)  
-利用`selenium`实现后台自动爬取**指定关键词下**发布的所有微博及其相关数据  
+利用`selenium`实现后台自动爬取**指定关键词下**发布的所有微博及其相关数据, 进一步可根据用户主页爬取**用户基本信息**  
 ## 更新内容  
 #### ▽ 2019.04.19更新
 更新了用于爬取用户基本信息的程序`userSpider.py`, 并将原爬虫程序`Spider.py`更名为`blogSpider.py`。
