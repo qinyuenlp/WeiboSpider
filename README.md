@@ -66,7 +66,7 @@ mypassword = '123456'
 only_data = userinfo(myhref, myusername, mypassword)  # 仅获取爬取的数据
 ```
   
-爬取E:/hrefs.csv中的多个用户主页并将数据保存到C盘data文件夹中:
+爬取E:/hrefs.csv中的多个用户主页并将数据保存到C盘:
 ```
 import csv
 
