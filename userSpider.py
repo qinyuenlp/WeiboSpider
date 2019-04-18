@@ -81,7 +81,7 @@ def get_info(driver, href, frame=None, add=False):
     else:
         return infoframe(each)
 
-def userinfo(href, username, password, filepath=None, saved=False, newfile=False):
+def userinfo(href, username, password, browser='Firefox', filepath=None, saved=False, newfile=False):
     '''
     主程序, 获取单个或所有用户的基本信息
 
@@ -101,13 +101,18 @@ def userinfo(href, username, password, filepath=None, saved=False, newfile=False
     >>> mypassword = '123456'
     >>> myfilepath = 'C:/test.csv'
     >>> only_data = userinfo(myhref, myusername, mypassword)  # 仅获取爬取的数据
-    >>> userinfo(myhref, myusername, mypassword, myfilepath, saved=True, newfilw=True)  # 将爬取的数据作为一个新文件保存到C盘
+    >>> userinfo(myhref, myusername, mypassword, filepath=myfilepath, saved=True, newfilw=True)  # 将爬取的数据作为一个新文件保存到C盘
     '''
     url = 'https://weibo.com/login.php'  # 微博主页面, 用于登录账户
     login_path = '//div[@class="gn_login"]/ul[@class="gn_login_list"]/li[3]/a[@class="S_txt1"]'
     frame_key = ['昵称', '真实姓名', '所在地', '性别', '性取向', '感情状况',
                  '生日', '血型', '博客地址', '个性域名', '简介', '注册时间', 'href']
-    driver = webdriver.Firefox(executable_path='geckodriver')
+    if browser == 'Firefox':
+        driver = webdriver.Firefox(executable_path='geckodriver')  # 打开浏览器
+    elif browser == 'Chrome':
+        driver = webdriver.Chrome(executable_path='chromedriver')
+    else:
+        return ValueError('目前仅支持Firefox与Chrome浏览器')
     driver.get(url)
     weibo_login(driver, login_path, username, password)
     time.sleep(2)
