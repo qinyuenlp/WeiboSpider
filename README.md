@@ -4,7 +4,7 @@
 利用`selenium`实现后台自动爬取**指定关键词下**发布的所有微博及其相关数据  
 ## 更新内容  
 #### ▽ 2019.04.19更新
-更新了用于爬取用户基本信息的程序`userSpider.py`, 并将原爬虫程序`Spider`更名为`blogSpider`。
+更新了用于爬取用户基本信息的程序`userSpider.py`, 并将原爬虫程序`Spider.py`更名为`blogSpider.py`。
 #### ▽ 2019.01.29更新
 更新了账号登录函数`weibo_login`, 更新后可以输入任意多次的验证码, 当系统不要求再次输入验证码后, ***需要在python界面中输入字符——N 程序才会继续运行***  
 ![example](https://github.com/QinY-Stat/WeiboSpider/blob/master/Image/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20190130000120.png)  
