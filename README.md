@@ -57,7 +57,7 @@ Standby(keyword, csv_file, my_username, my_password, maxpage=20, sleeptime=1800,
 #### 3.2 userSpider
 可输入单个用户主页或用户主页列表(程序目前仅可识别list/array/tuple)  
 主函数`userinfo`中有两个bool类型参数:`saved`、`newfile`, 分别代表是否将爬取的数据保存为csv格式数据、保存的文件是否覆盖原文件/创建新文件  
-**注意: saved与newfile只要其中一个为True, 输入中都应包括filepath**
+**注意: saved与newfile只要其中一个为True, 输入中都应包括filepath**  
 爬取单个用户主页并仅返回爬取数据:
 ```
 myhref = 'https://weibo.com/weibokefu'
