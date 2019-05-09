@@ -96,12 +96,12 @@ def userinfo(href, username, password, browser='Firefox', filepath=None, saved=F
 
     使用范例
     ----------
-    >>> myhref = 'https://weibo.com/weibokefu'
-    >>> myusername = '123456'
-    >>> mypassword = '123456'
-    >>> myfilepath = 'C:/test.csv'
-    >>> only_data = userinfo(myhref, myusername, mypassword)  # 仅获取爬取的数据
-    >>> userinfo(myhref, myusername, mypassword, filepath=myfilepath, saved=True, newfilw=True)  # 将爬取的数据作为一个新文件保存到C盘
+    > myhref = 'https://weibo.com/weibokefu'
+    > myusername = '123456'
+    > mypassword = '123456'
+    > myfilepath = 'C:/test.csv'
+    > only_data = userinfo(myhref, myusername, mypassword)  # 仅获取爬取的数据
+    > userinfo(myhref, myusername, mypassword, filepath=myfilepath, saved=True, newfilw=True)  # 将爬取的数据作为一个新文件保存到C盘
     '''
     url = 'https://weibo.com/login.php'  # 微博主页面, 用于登录账户
     login_path = '//div[@class="gn_login"]/ul[@class="gn_login_list"]/li[3]/a[@class="S_txt1"]'
