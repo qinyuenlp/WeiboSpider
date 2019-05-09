@@ -6,6 +6,9 @@ import datetime
 import numpy as np
 from urllib import parse
 from selenium import webdriver
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 
 def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, password=None, browser='Firefox'):
     '''
@@ -21,17 +24,6 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
     # 准备信息
     variables = ['ID', 'Href', 'Blog', 'PubTime', 'Like', 'Comment', 'Transfer']
     Weibo = {i:[] for i in variables}
-    
-    # 元素所在位置
-    login_path = '//div[@class="gn_login"]/ul[@class="gn_login_list"]/li[3]/a[@class="S_txt1"]'
-    ID_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/div[@class="info"]/div[2]/a[1]'
-    Blog_normal_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/p[@class="txt"and @node-type="feed_list_content"]'
-    Blog_extend_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/p[@class="txt"and @node-type="feed_list_content_full"]'
-    PubTime_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/p[@class="from"]/a[1]'
-    Like_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[4]/a'
-    Comment_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[3]/a'
-    Transfer_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[2]/a'
-    nextpage_path = '//div[@class="m-page"]/div/a[@class="next"]'
 
     if login:  # 如果是第一次启动程序, 则需要执行 [打开浏览器-登录] 操作
         if browser == 'Firefox':
@@ -42,77 +34,98 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
             return ValueError('目前仅支持Firefox与Chrome浏览器')
         driver.get(get_url(keyword))
         time.sleep(1)
-        weibo_login(driver, login_path, username, password)  # 登录
+        weibo_login(driver, username, password)  # 登录
         time.sleep(3)
 
     click_control = True
     current_page = 1
     while click_control and current_page <= maxpage:
+        driver.set_page_load_timeout(10)
         try:
-            next_click = driver.find_elements_by_partial_link_text('展开全文')
-            for each in next_click:  # 逐个点击'展开全文'按钮
-                try:
-                    each.click()
-                except:
-                    continue
-            time.sleep(1)
-            begin_time = datetime.datetime.now()  # 爬取数据时的时间截点
-            IDs = driver.find_elements_by_xpath(ID_path)
-            time.sleep(0.1)
-            Blogs_normal = driver.find_elements_by_xpath(Blog_normal_path)  # 普通博文
-            time.sleep(0.1)
-            Blogs_extend = driver.find_elements_by_xpath(Blog_extend_path)  # 长微博博文
-            time.sleep(0.1)
-            PubTimes = driver.find_elements_by_xpath(PubTime_path)
-            time.sleep(0.1)
-            Likes = driver.find_elements_by_xpath(Like_path)
-            time.sleep(0.1)
-            Comments = driver.find_elements_by_xpath(Comment_path)
-            time.sleep(0.1)
-            Transfers = driver.find_elements_by_xpath(Transfer_path)
+            Weibo = get_blog(driver, Weibo)  # 爬取并更新结果
+            to_nextpage(driver)
 
-            Weibo['ID'] += [i.text for i in IDs]
-            Weibo['Href'] += [i.get_attribute('href') for i in IDs]
-            Weibo['PubTime'] += [time_process(begin_time, i.text) for i in PubTimes]  # 将时间处理为统一格式
-            Weibo['Like'] += [get_number(i.text) for i in Likes]
-            Weibo['Comment'] += [get_number(i.text) for i in Comments]
-            Weibo['Transfer'] += [get_number(i.text) for i in Transfers]
-            Blogs_list_page = [blog.text for blog in Blogs_normal]
-
-            # 将普通博文与长微博博文合并
-            extend = 0
-            for i in range(len(Blogs_list_page)):
-                if Blogs_list_page[i] == '':
-                    Blogs_list_page[i] = Blogs_extend[extend].text
-                    extend += 1
-            Weibo['Blog'] += Blogs_list_page
-
-            click_control = True
-            try:
-                driver.find_element_by_xpath(nextpage_path).click()  # 点击'下一页'标签, 进入下一页面
-            except:
-                driver.refresh()
-                driver.find_element_by_xpath(nextpage_path).click()
             print('######第%d页######' % current_page)
             current_page += 1
+        except TimeoutError:
+            driver.refresh()
         except:
             print('爬虫结束')
             click_control = False
         
     return driver, Weibo
 
+def get_blog(driver, Weibo):
+    ID_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/div[@class="info"]/div[2]/a[1]'
+    Blog_normal_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/p[@class="txt"and @node-type="feed_list_content"]'
+    Blog_extend_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/p[@class="txt"and @node-type="feed_list_content_full"]'
+    PubTime_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/p[@class="from"]/a[1]'
+    Like_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[4]/a'
+    Comment_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[3]/a'
+    Transfer_path = '//div[@class="card"]/div[@class="card-act"]/ul/li[2]/a'
+
+    next_click = driver.find_elements_by_partial_link_text('展开全文')
+    for each in next_click:  # 逐个点击'展开全文'按钮
+        try:
+            each.click()
+        except:
+            continue
+    time.sleep(1)
+    begin_time = datetime.datetime.now()  # 爬取数据时的时间截点
+    IDs = driver.find_elements_by_xpath(ID_path)
+    time.sleep(0.1)
+    Blogs_normal = driver.find_elements_by_xpath(Blog_normal_path)  # 普通博文
+    time.sleep(0.1)
+    Blogs_extend = driver.find_elements_by_xpath(Blog_extend_path)  # 长微博博文
+    time.sleep(0.1)
+    PubTimes = driver.find_elements_by_xpath(PubTime_path)
+    time.sleep(0.1)
+    Likes = driver.find_elements_by_xpath(Like_path)
+    time.sleep(0.1)
+    Comments = driver.find_elements_by_xpath(Comment_path)
+    time.sleep(0.1)
+    Transfers = driver.find_elements_by_xpath(Transfer_path)
+
+    Weibo['ID'] += [i.text for i in IDs]
+    Weibo['Href'] += [i.get_attribute('href') for i in IDs]
+    Weibo['PubTime'] += [time_process(begin_time, i.text) for i in PubTimes]  # 将时间处理为统一格式
+    Weibo['Like'] += [get_number(i.text) for i in Likes]
+    Weibo['Comment'] += [get_number(i.text) for i in Comments]
+    Weibo['Transfer'] += [get_number(i.text) for i in Transfers]
+    Blogs_list_page = [blog.text for blog in Blogs_normal]
+
+    # 将普通博文与长微博博文合并
+    extend = 0
+    for i in range(len(Blogs_list_page)):
+        if Blogs_list_page[i] == '':
+            Blogs_list_page[i] = Blogs_extend[extend].text
+            extend += 1
+    Weibo['Blog'] += Blogs_list_page
+
+    return Weibo
+
+def to_nextpage(driver):
+    nextpage_path = '//div[@class="m-page"]/div/a[@class="next"]'
+    try:
+        driver.find_element_by_xpath(nextpage_path).click()  # 点击'下一页'标签, 进入下一页面
+    except:
+        driver.refresh()
+        driver.find_element_by_xpath(nextpage_path).click()
+
 def get_url(keyword, page=1):
     ''' 输入关键字, 获取对应搜索界面第page页的Url, 默认从第1页开始爬取 '''
     url_mid = parse.quote(keyword)  # 将text转为URL编码
     return 'http://s.weibo.com/weibo/{mid}&page={page}'.format(mid=url_mid, page=page)
 
-def weibo_login(driver, login_path, username, password):
+def weibo_login(driver, username, password):
     ''' 执行登录操作 '''
+    login_path = '//div[@class="gn_login"]/ul[@class="gn_login_list"]/li[3]/a[@class="S_txt1"]'
     username_path = '/html/body/div[7]/div[2]/div[3]/div[3]/div[1]/input'
     password_path = '/html/body/div[7]/div[2]/div[3]/div[3]/div[2]/input'
 
     driver.find_element_by_xpath(login_path).click()  # 点击'登录'按钮
-    time.sleep(2)
+    # time.sleep(2)
+    WebDriverWait(driver, 5, 0.5).until(EC.presence_of_element_located((By.XPATH, username_path)))
     driver.find_element_by_xpath(username_path).clear()
     driver.find_element_by_xpath(username_path).send_keys(username)  # 输入微博账号
     driver.find_element_by_xpath(password_path).clear()
@@ -252,6 +265,6 @@ if __name__ == '__main__':
     my_username = 'abcdefg'
     my_password = '11111111'
     keyword = '微博'
-    my_browser = 'Chrome'
+    my_browser = 'Firefox'
 
-    Standby(keyword, csv_file, my_username, my_password, maxpage=20, sleeptime=1800, browser=my_browser)
+    Standby(keyword, csv_file, my_username, my_password, maxpage=50, sleeptime=1800, browser=my_browser)
