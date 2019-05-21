@@ -2,7 +2,9 @@
 [![Python](https://img.shields.io/badge/Python-3.6-green.svg)](https://www.python.org/)
 ![selenium](https://img.shields.io/badge/selenium-3.141.0-blue.svg)  
 利用`selenium`实现后台自动爬取**指定关键词下**发布的所有微博及其相关数据, 进一步可根据用户主页爬取**用户基本信息**  
-## 更新内容  
+## 更新日志  
+#### ▽ 2019.05.21更新  
+在`blogSpider.py`的`weibo_spider`函数中添加了**爬取指定时间段下的关键词搜索结果**功能
 #### ▽ 2019.04.19更新
 更新了用于爬取用户基本信息的程序`userSpider.py`, 并将原爬虫程序`Spider.py`更名为`blogSpider.py`。
 #### ▽ 2019.01.29更新
@@ -46,13 +48,20 @@
 #### 3.1 blogSpider
 先爬取关键词**微博**下的前20页微博信息, 接着每隔半小时(1800s)更新一次数据
 ```
-csv_file = 'C:/test.csv'  # 数据文件保存路径
-my_username = 'abcdefg'  # 微博账号
-my_password = '11111111'  # 密码
-keyword = '微博'  # 要搜索的关键词
-my_browser = 'Chrome'  # 浏览器类型(注:仅有Firefox或Chrome两种)
+csv_file = 'C:/test.csv'
+my_username = 'abcdefg'
+my_password = '11111111'
+keyword = '微博'
+my_browser = 'Firefox'
 
-Standby(keyword, csv_file, my_username, my_password, maxpage=20, sleeptime=1800, browser=my_browser)
+# 待机爬取示例
+Standby(keyword, csv_file, my_username, my_password, maxpage=50, sleeptime=1800, browser=my_browser)
+
+# 按指定时间段爬取示例
+time_start = '2019-05-01'
+time_end = '2019-05-07'
+driver, weibo_result = weibo_spider(keyword=keyword, username=my_username, password=my_password, time_from=time_start, time_to=time_end)
+print(weibo_result)
 ```
 #### 3.2 userSpider
 可输入单个用户主页或用户主页列表(程序目前仅可识别list/array/tuple)  
