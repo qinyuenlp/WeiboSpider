@@ -1,7 +1,10 @@
 # WeiboSpider
 [![Python](https://img.shields.io/badge/Python-3.6-green.svg)](https://www.python.org/)
 ![selenium](https://img.shields.io/badge/selenium-3.141.0-blue.svg)  
-利用`selenium`实现后台自动爬取**指定关键词下**发布的所有微博及其相关数据, 进一步可根据用户主页爬取**用户基本信息**  
+利用`selenium`实现下列三个功能:  
+1.后台自动爬取**指定关键词下**发布的所有微博及其相关数据;  
+2.按时间段爬取微博关键词搜索结果;  
+3.根据用户主页爬取**用户基本信息**.  
 ## 更新日志  
 #### ▽ 2019.05.21更新  
 在`blogSpider.py`的`weibo_spider`函数中添加了**爬取指定时间段下的关键词搜索结果**功能
