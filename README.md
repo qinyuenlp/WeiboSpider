@@ -5,6 +5,7 @@
 1.后台自动爬取**指定关键词下**发布的所有微博及其相关数据;  
 2.爬取**指定时间段的**微博关键词搜索结果;  
 3.根据用户主页爬取**用户基本信息**.  
+**具体使用方法请查看 3.示例**  
 ## 更新日志  
 #### ▽ 2019.05.21更新  
 在`blogSpider.py`的`weibo_spider`函数中添加了**爬取指定时间段下的关键词搜索结果**功能
@@ -47,7 +48,7 @@
 感情状况 | str | href | str
 生日 | str
 
-### 3.例子
+### 3.示例
 #### 3.1 blogSpider
 先爬取关键词**微博**下的前20页微博信息, 接着每隔半小时(1800s)更新一次数据
 ```
@@ -61,8 +62,15 @@ my_browser = 'Firefox'
 Standby(keyword, csv_file, my_username, my_password, maxpage=50, sleeptime=1800, browser=my_browser)
 
 # 按指定时间段爬取示例
+# 1.爬取2019年5月1日至5月7日的搜索结果
 time_start = '2019-05-01'
 time_end = '2019-05-07'
+driver, weibo_result = weibo_spider(keyword=keyword, username=my_username, password=my_password, time_from=time_start, time_to=time_end)
+print(weibo_result)
+
+# 2.爬取2019年5月1日早上9点至10点的搜索结果
+time_start = '2019-05-01-09'
+time_end = '2019-05-07-10'
 driver, weibo_result = weibo_spider(keyword=keyword, username=my_username, password=my_password, time_from=time_start, time_to=time_end)
 print(weibo_result)
 ```
