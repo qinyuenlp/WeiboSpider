@@ -18,13 +18,12 @@
 劣：无法自行判断是否需要再次输入验证码, 需要人工帮助判断**  
 ## 程序说明  
 ### 1.注意事项
-1. 目前该程序只能在[Firefox](http://www.firefox.com.cn/)或[Google Chrome](https://www.google.cn/chrome)上运行, 运行程序前请确保计算机已经安装了其中一款浏览器
-2. 运行程序前, 需要根据自己使用的浏览器下载对应的浏览器驱动, 并将驱动与python.exe放置在同一文件夹中, 这里给出了两种浏览器驱动的压缩文件, 也可以自行上网下载  
+1. 目前该程序只能在[Firefox](http://www.firefox.com.cn/)或[Google Chrome](https://www.google.cn/chrome)上运行, 运行程序前请确保计算机已经安装了其中一款浏览器，并下载对应的浏览器驱动, **将驱动(.exe文件)与python.exe放置在同一文件夹中**, [这里](https://github.com/QinY-Stat/WeiboSpider/tree/master/Browser%20driver)给出了两种64位windows下的浏览器驱动的压缩文件, **下表给出了各系统下的浏览器驱动下载链接**  
 
     浏览器名称 | 驱动名
     :----: | :----:
-    Firefox | geckodriver.exe
-    Chrome | chromedriver.exe
+    Firefox | [geckodriver.exe](https://github.com/mozilla/geckodriver/releases)
+    Chrome | [chromedriver.exe](https://chromedriver.storage.googleapis.com/index.html)
 
 ### 2.爬取内容
 #### 2.1 blogSpider
