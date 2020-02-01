@@ -12,10 +12,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
 
-def weibo_spider(keyword, maxpage=50, login=True, type_all=False, driver=None, username=None, password=None, browser='Firefox',
-                 time_from=None, time_to=None):
+def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, password=None, browser='Firefox',
+                 scope=None, time_from=None, time_to=None):
     '''
     执行单次爬虫
+    Parameter
+    --------
     keyword: 要爬取的关键词
     maxpage: 需要爬取多少页
     login: 是否需要登录
@@ -23,12 +25,29 @@ def weibo_spider(keyword, maxpage=50, login=True, type_all=False, driver=None, u
     username: 微博账号
     password: 微博密码
     browser: 浏览器类型, 只能取['Firefox', 'Chrome']中的其中一个
+    scope: 搜索结果的范围, 目前仅支持"all"或"origin"
     time_from: 按时间查询, 起始日期, 例: 2019-05-01
     time_to: 按时间查询, 结束日期, 例: 2019-05-07
+
+    Return
+    --------
+    driver: WebDriver
+        浏览器状态
+    Weibo: dict
+        爬取的数据
     '''
     # 准备信息
     variables = ['ID', 'Href', 'Blog', 'PubTime', 'Like', 'Comment', 'Transfer']
     Weibo = {i: [] for i in variables}
+    if scope and scope not in ["all", "origin"]:
+        raise ValueError("参数'scope'必须为None或'all'或'origin'.")
+
+    if time_from and time_to:
+        url = get_url(keyword, time_from=time_from, time_to=time_to, scope=scope)
+    elif time_from == time_to == None:
+        url = get_url(keyword, page=1, scope=scope)
+    else:
+        raise ValueError("参数'time_from'与'time_to'应当同时有值或同时无值.")
 
     if login:  # 如果是第一次启动程序, 则需要执行 [打开浏览器-登录] 操作
         if browser == 'Firefox':
@@ -36,22 +55,16 @@ def weibo_spider(keyword, maxpage=50, login=True, type_all=False, driver=None, u
         elif browser == 'Chrome':
             driver = webdriver.Chrome(executable_path='chromedriver')
         else:
-            return ValueError('目前仅支持Firefox与Chrome浏览器')
-        if time_from and time_to:
-            driver.get(get_url_by_time(keyword, time_from, time_to))
-        elif time_from == time_to == None:
-            driver.get(get_url(keyword))
-        else:
-            KeyError('time_from与time_to应当同时有值或同时无值')
+            return ValueError("目前仅支持Firefox与Chrome浏览器.")
+        driver.get(url)
         time.sleep(2)
         try:
             weibo_login(driver, username, password)  # 登录
         except TimeoutException:
             driver.quit()
-            weibo_spider(keyword, maxpage, login, type_all, driver, username, password, browser, time_from, time_to)
+            weibo_spider(keyword, maxpage, login, driver, username, password, browser, scope, time_from, time_to)
         time.sleep(3)
-    if type_all:
-        driver.get('https://s.weibo.com/weibo?q={topic}&nodup=1'.format(topic=keyword))
+    driver.get(url)
     click_control = True
     current_page = 1
     while click_control and current_page <= maxpage:
@@ -67,7 +80,7 @@ def weibo_spider(keyword, maxpage=50, login=True, type_all=False, driver=None, u
         except:
             print('爬虫结束')
             click_control = False
-            driver.get('https://s.weibo.com/weibo?q={topic}&nodup=1'.format(topic=keyword))
+            driver.get(url)
 
     return driver, Weibo
 
@@ -131,16 +144,21 @@ def to_nextpage(driver):
         driver.refresh()
         driver.find_element_by_xpath(nextpage_path).click()
 
-def get_url(keyword, page=1):
+def get_url(keyword, page=None, time_from=None, time_to=None, scope=None):
     ''' 输入关键字, 获取对应搜索界面第page页的Url, 默认从第1页开始爬取 '''
     url_mid = parse.quote(keyword)  # 将text转为URL编码
-    return 'http://s.weibo.com/weibo/{mid}&page={page}'.format(mid=url_mid, page=page)
-    # return 'http://s.weibo.com/weibo/{mid}&nodup={page}'.format(mid=url_mid, page=page)
-
-def get_url_by_time(keyword, time_from, time_to):
-    ''' 根据输入的时间, 调用微博的高级搜索功能进行搜索 '''
-    url_mid = parse.quote(keyword)  # 将text转为URL编码
-    return 'http://s.weibo.com/weibo/{mid}&timescope=custom:{timefrom}:{timeto}'.format(mid=url_mid, timefrom=time_from, timeto=time_to)
+    if page:
+        if not scope:
+            return 'http://s.weibo.com/weibo/{mid}&page={page}'.format(mid=url_mid, page=page)
+        elif scope == "all":
+            return 'http://s.weibo.com/weibo/{mid}&page={page}&nodup=1'.format(mid=url_mid, page=page)
+        elif scope == "origin":
+            return 'http://s.weibo.com/weibo/{mid}&scope={scope}&page={page}'.format(mid=url_mid, scope='ori', page=page)
+    elif time_from and time_to:
+        if scope == "origin":
+            return 'http://s.weibo.com/weibo/{mid}&scope={scope}&timescope=custom:{timefrom}:{timeto}'.format(mid=url_mid, scope='ori', timefrom=time_from, timeto=time_to)
+        else:
+            return 'http://s.weibo.com/weibo/{mid}&timescope=custom:{timefrom}:{timeto}'.format(mid=url_mid, timefrom=time_from, timeto=time_to)
 
 def weibo_login(driver, username, password):
     ''' 执行登录操作 '''
@@ -267,12 +285,13 @@ def save_blog(data, filepath):
     else:
         return ValueError('目前只支持输出csv格式')
 
-def Standby(keyword, filepath, username=None, password=None, maxpage=50, sleeptime=3600, browser='Firefox', type_all=False):
+def Standby(keyword, filepath, username=None, password=None, maxpage=50, sleeptime=3600, browser='Firefox', scope=None):
     '''
     后台待机程序, 每隔一小时(3600s)更新一次数据
     sleeptime: 两次爬取操作的时间间隔, 单位为秒(s)
+    scope: 搜索结果的范围, 目前仅支持"all"或"origin"
     '''
-    driver, result = weibo_spider(keyword, maxpage=maxpage, username=username, password=password, browser=browser, type_all=type_all)  # 第一次打开浏览器, 需要登录微博账号
+    driver, result = weibo_spider(keyword, maxpage=maxpage, username=username, password=password, browser=browser, scope=scope)  # 第一次打开浏览器, 需要登录微博账号
     for i in result:
         print('%s:\n%d\n%s' % (i, len(result[i]), result[i]))  # 爬虫
     latest, result = select_data(result, login=True, filepath=filepath)
@@ -280,23 +299,26 @@ def Standby(keyword, filepath, username=None, password=None, maxpage=50, sleepti
     while True:
         time.sleep(sleeptime)
         driver.refresh()
-        driver, result = weibo_spider(keyword, maxpage=50, login=False, driver=driver, browser=browser, type_all=type_all)  # 之后仅进行页面刷新以及爬取操作, 不需要登录微博账号
+        driver, result = weibo_spider(keyword, maxpage=50, login=False, driver=driver, browser=browser, scope=scope)  # 之后仅进行页面刷新以及爬取操作, 不需要登录微博账号
         latest, result = select_data(result, latest=latest)
         save_blog(result, filepath)
         print('-------------%s-------------'%latest)
 
 if __name__ == '__main__':
     csv_file = 'C:/test.csv'
-    my_username = 'abcdefg'
-    my_password = '11111111'
+    my_username = 'myusername'
+    my_password = 'mypassword'
     keyword = '微博'
-    my_browser = 'Firefox'
+    my_browser = 'Firefox'  # 'Firefox'/'Chrome'
+    scope = 'origin'  # None/'all'/'origin'
     
     # 待机爬取示例
-    Standby(keyword, csv_file, my_username, my_password, maxpage=50, sleeptime=1800, browser=my_browser)
+    Standby(keyword, csv_file, my_username, my_password, maxpage=50, sleeptime=1800, browser=my_browser, scope=scope)
     
-    # 按指定时间段爬取示例
-    time_start = '2019-05-01'
-    time_end = '2019-05-07'
-    driver, weibo_result = weibo_spider(keyword=keyword, username=my_username, password=my_password, time_from=time_start, time_to=time_end)
-    print(weibo_result)
+    # # 按指定时间段爬取示例(2019年5月1日06:00至2019年5月7日23:00的搜索结果)
+    # time_start = '2019-05-01-06'
+    # time_end = '2019-05-07-23'
+    # driver, weibo_result = weibo_spider(keyword=keyword, username=my_username, password=my_password, time_from=time_start, time_to=time_end, scope=scope)
+    # latest, result = select_data(weibo_result, login=True, filepath=csv_file)
+    # save_blog(result, csv_file)
+    # print(weibo_result)

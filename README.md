@@ -56,21 +56,36 @@ my_username = 'abcdefg'
 my_password = '11111111'
 keyword = '微博'
 my_browser = 'Firefox'
+my_scope = 'origin'  
 
 # 待机爬取示例
 Standby(keyword, csv_file, my_username, my_password, maxpage=50, sleeptime=1800, browser=my_browser)
 
 # 按指定时间段爬取示例
-# 1.爬取2019年5月1日至5月7日的搜索结果
+# 1.爬取2019年5月1日至5月7日的全部搜索结果
 time_start = '2019-05-01'
 time_end = '2019-05-07'
-driver, weibo_result = weibo_spider(keyword=keyword, username=my_username, password=my_password, time_from=time_start, time_to=time_end)
+driver, weibo_result = weibo_spider(keyword=keyword,
+                                    username=my_username,
+                                    password=my_password,
+                                    time_from=time_start,
+                                    time_to=time_end,
+                                    scope='all')
+latest, result = select_data(weibo_result, login=True, filepath=csv_file)
+save_blog(result, csv_file)
 print(weibo_result)
 
-# 2.爬取2019年5月1日早上9点至10点的搜索结果
+# 2.爬取2019年5月1日09:00至10:00的原创微博搜索结果
 time_start = '2019-05-01-09'
 time_end = '2019-05-07-10'
-driver, weibo_result = weibo_spider(keyword=keyword, username=my_username, password=my_password, time_from=time_start, time_to=time_end)
+driver, weibo_result = weibo_spider(keyword=keyword, 
+                                    username=my_username,
+                                    password=my_password,
+                                    time_from=time_start,
+                                    time_to=time_end,
+                                    scope='origin')
+latest, result = select_data(weibo_result, login=True, filepath=csv_file)
+save_blog(result, csv_file)
 print(weibo_result)
 ```
 #### 3.2 userSpider
