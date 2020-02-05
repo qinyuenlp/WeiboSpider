@@ -84,6 +84,77 @@ def weibo_spider(keyword, maxpage=50, login=True, driver=None, username=None, pa
 
     return driver, Weibo
 
+def weibo_spider_continuous(keyword, maxpage=50, login=True, driver=None, username=None, password=None, browser='Firefox',
+                 scope=None, date=None, hour_from=None, hour_to=None):
+    '''
+    用于爬取某天指定时间段每小时的数据
+    Parameter
+    --------
+    keyword: str, 要爬取的关键词
+    maxpage: int, 需要爬取多少页
+    login: bool, 是否需要登录
+    driver: WebDriver/None, 浏览器驱动, 若仅爬取一次或第一次爬取, 则该参数取None即可; 若需要自动爬取多次, driver=第一次爬取时定义的驱动参数名
+    username: str, 微博账号
+    password: str, 微博密码
+    browser: str, 浏览器类型, 只能取['Firefox', 'Chrome']中的其中一个
+    scope: str, 搜索结果的范围, 目前仅支持"all"或"origin"
+    date: str, 日期(格式为'YYYY-MM-DD'
+    hour_from: int, 起始时刻(例如: 9代表9:00)
+    hour_to: int, 结束时刻(意义同上)
+    '''
+    login_url = get_url(keyword, page=1, scope=scope)
+    pages = {}
+    if login:
+        if browser == 'Firefox':
+            driver = webdriver.Firefox(executable_path='geckodriver')  # 打开浏览器
+        elif browser == 'Chrome':
+            driver = webdriver.Chrome(executable_path='chromedriver')
+        else:
+            return ValueError("目前仅支持Firefox与Chrome浏览器.")
+        driver.get(login_url)
+        time.sleep(2)
+        try:
+            weibo_login(driver, username, password)  # 登录
+        except TimeoutException:
+            driver.quit()
+            weibo_spider_continuous(keyword, maxpage, login, driver, username, password, browser, scope, date, hour_from, hour_to)
+        time.sleep(3)
+
+    for i in range(hour_from, hour_to + 1):
+        variables = ['ID', 'Href', 'Blog', 'PubTime', 'Like', 'Comment', 'Transfer']
+        Weibo = {i: [] for i in variables}
+        hour_from_str = '0' + str(i) if i < 10 else str(i)
+        hour_to_str = '0' + str(i + 1) if i + 1 < 10 else str(i + 1)
+        time_from = '{date}-{hour_from_str}'.format(date=date, hour_from_str=hour_from_str)
+        time_to = '{date}-{hour_to_str}'.format(date=date, hour_to_str=hour_to_str)
+
+        url = get_url(keyword, time_from=time_from, time_to=time_to, scope=scope)
+
+        driver.get(url)
+        click_control = True
+        current_page = 1
+        while click_control and current_page <= maxpage:
+            driver.set_page_load_timeout(10)
+            try:
+                Weibo = get_blog(driver, Weibo)  # 爬取并更新结果
+                to_nextpage(driver)
+
+                print('{hour_from}-{hour_to} ({current_page}/50)'.format(hour_from=hour_from_str, hour_to=hour_to_str, current_page=current_page))
+                current_page += 1
+            except TimeoutError:
+                driver.refresh()
+            except:
+                print('爬虫结束')
+                click_control = False
+                pages['{hour_from}-{hour_to}'.format(hour_from=hour_from_str, hour_to=hour_to_str)] = current_page
+                driver.get(url)
+
+        latest, result = select_data(Weibo, login=True, filepath=csv_file)
+        save_blog(result, csv_file)
+        time.sleep(10)
+    print('日期{date}爬虫结束'.format(date=date))
+    return pages
+
 def get_blog(driver, Weibo):
     ID_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/div[@class="info"]/div[2]/a[1]'
     Blog_normal_path = '//div[@class="card-wrap"]/div[@class="card"]/div[@class="card-feed"]/div[@class="content" and @node-type="like"]/p[@class="txt"and @node-type="feed_list_content"]'
@@ -312,8 +383,8 @@ if __name__ == '__main__':
     my_browser = 'Firefox'  # 'Firefox'/'Chrome'
     scope = 'origin'  # None/'all'/'origin'
     
-    # 待机爬取示例
-    Standby(keyword, csv_file, my_username, my_password, maxpage=50, sleeptime=1800, browser=my_browser, scope=scope)
+    # # 待机爬取示例
+    # Standby(keyword, csv_file, my_username, my_password, maxpage=50, sleeptime=1800, browser=my_browser, scope=scope)
     
     # # 按指定时间段爬取示例(2019年5月1日06:00至2019年5月7日23:00的搜索结果)
     # time_start = '2019-05-01-06'
@@ -322,3 +393,14 @@ if __name__ == '__main__':
     # latest, result = select_data(weibo_result, login=True, filepath=csv_file)
     # save_blog(result, csv_file)
     # print(weibo_result)
+
+    # # 分小时连续爬取某天指定时间段的数据
+    date = '2020-01-28'
+    hour_from = 9
+    hour_to = 18
+    
+    pages = weibo_spider_continuous(keyword=keyword, username=my_username, password=my_password, maxpage=50,
+                                    browser=my_browser, scope='origin', date=date, hour_from=hour_from, hour_to=hour_to)
+    print('------------------------------------\n\n\n\n')
+    for i in pages.keys():
+        print('%s-%d' % (i, pages[i]))
